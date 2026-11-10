@@ -1,0 +1,8 @@
+- insert:
+    - id: mineru-win7
+      name: dsh-mineru-win7
+      config:
+        baseURL: ''
+        protocol: legacy-tasks-v2
+        officeMode: pdf_ocr
+        requestTimeoutSeconds: 360
