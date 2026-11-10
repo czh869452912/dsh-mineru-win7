@@ -3,10 +3,11 @@
 Windows 7 / Python 3.8.10 DSH 的独立 MinerU 客户端插件，连接自部署的
 legacy `/tasks` protocol v2 与 Doc2markdonw Office Gateway。运行时无第三方依赖。
 
-当前开发版 `0.1.0-dev.2` 已实现上传、任务状态、JSON/ZIP 下载、安全落盘、
+当前开发版 `0.1.0-dev.3` 已实现上传、任务状态、JSON/ZIP 下载、安全落盘、
 分段阅读、持久化缓存、会话隔离、宿主 jobs 后台等待和原版 Web 外壳中的可选面板。
 本机没有 MinerU GPU 服务；已验证本地协议与宿主集成，尚未完成真实服务、
-Win7 实机和提取后的 Portable 发行验收。详见 [验证记录](docs/verification.md)。
+Win7 实机和完整发行验收。指定既有 x86/x64 Portable 中的插件安装、冷启动与卸载
+已完成定向检查，详见 [验证记录](docs/verification.md)。
 
 ## 安装
 
@@ -118,6 +119,9 @@ ZIP 拒绝路径穿越、Windows 设备名/ADS、链接、重复大小写路径�
 ```
 
 测试使用真实回环套接字、临时 profile 和原版 Web 安装图，不连接 GPU 服务。
+新增可重复的离线完整流程与实际 Portable 插件安装检查见
+[无 GPU 验证指南](docs/offline-testing.md)。浏览器与模拟服务入口均在 scripts/ 中，
+支持源码宿主或指定实际 Portable ZIP；输出记录精确包哈希和独立冷启动结果。
 将来有可访问服务器后，可选择运行下列真实联调；脚本不安装或部署服务：
 
 ```powershell

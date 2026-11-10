@@ -1,6 +1,6 @@
 {
   "name": "dsh-mineru-win7",
-  "version": "0.1.0-dev.2",
+  "version": "0.1.0-dev.3",
   "description": "Python 3.8 MinerU legacy Tasks client with Office Gateway, durable artifacts and an optional original-shell Web panel.",
   "license": "MIT",
   "private": true,
@@ -55,7 +55,12 @@
         "src/client.js",
         "python/mineru_win7/web.py",
         "docs/verification.md",
-        "scripts/verify_live.py"
+        "scripts/verify_live.py",
+        "docs/offline-testing.md",
+        "scripts/offline_fixture.py",
+        "scripts/offline_worker.py",
+        "scripts/offline_browser.cjs",
+        "scripts/verify_offline.py"
       ]
     },
     "client": {
@@ -69,8 +74,8 @@
       "formatVersion": 1,
       "targetUpstream": "a4c74a91e06b00fe0b0937bde982170c526cc842",
       "files": {
-        "client/client.js": "902330ad2b92e8c8533e337720fb0cc74964dab0f48ad1102a44fd4e2d46f7ee",
-        "client/client.js.map": "5f6ea9d10c2a6449ce4c8f8f915a495ab66ba3d5c9a6987ebe69385496f99313",
+        "client/client.js": "aea6098b9f809e301c4fcce1758aa7507baa29f6a68878f84f7214555520f15a",
+        "client/client.js.map": "45a31534f883fdf4dbde4160a0140a933bc400abda860fd1b8976e7b0a65aea3",
         "remote/contract.json": "8d5ff0ca89663563e699abe27d9dbc31f92e9c6bdb8aeabaf35f286d5ea18af0",
         "remote/typert.py": "89263d58ed63e0a11cf0cfa91ae45eb91507b83de4cc17d361e147d5f5ff4b35"
       }

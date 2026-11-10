@@ -1,5 +1,63 @@
 # 定向验证记录
 
+## 可重复离线测试与实际 Portable 插件旅程（2026-11-10，0.1.0-dev.3）
+
+本轮补充 scripts/verify_offline.py、offline_fixture.py、offline_worker.py、
+offline_browser.cjs 和操作指南。测试仅使用 loopback 模拟服务，未部署 GPU/OCR，
+未使用 LLM。观察器使用真实宿主 jobs 的 quiet 通知，避免后台完成触发模型请求。
+
+测试中截图复查发现停止按钮会保留上一任务的 job ID。已将 Web 控制绑定到 task_id，
+切换任务后隐藏其他任务的控制，停止成功和读取已完成结果后清除按钮，补充实际浏览器回归。
+原版 apps/web/dist 未改动。修复后生成新的 dev.3 ZIP，未重建宿主 Portable。
+
+**精确受测插件 ZIP：** `.local_plugin/dist/dsh-mineru-win7-0.1.0-dev.3.zip`（相对于宿主根目录）。
+SHA-256：`04819ecac162882bf3d34932ac5cbc3826d31134500a6799b2ce6647b74dc95e`。
+已核对 ZIP 文件清单、Web 文件哈希与 Python 3.8 语法。此记录写入源码后不重建该已验收 ZIP；
+包内的 verification.md 保留打包时的历史版本，以外部本轮回执作为精确包验证证据。
+
+| 实际运行环境 | 结果 | 私有原始证据目录 |
+|---|---|---|
+| 既有 x64 Portable，包内 Python 3.8.10 | fresh/cold/removed 全通过，86.906 秒 | `%TEMP%/mru-x64-1110-final/` |
+| 既有 x86 Portable，包内 Python 3.8.10 | fresh/cold/removed 全通过，87.890 秒 | `%TEMP%/mru-x86-1110-final/` |
+| 源码宿主，无浏览器模式 | 三阶段通过，27.938 秒 | `%TEMP%/mru-source-headless-1110/` |
+| 新入口、包生命周期及严格 Web 合同 | 10 passed，33.14 秒，退出 0 | `.out/offline-consumers-20261110-215815/` |
+
+两个实际 Portable 均来自宿主 `dist/creative-preview-20261107-complete/`，文件分别为
+`dsh-win7-portable-creative-preview-20261107-x64.zip` 和 `...-x86.zip`。
+包哈希分别为 `416cae0b53914daf4c1cb62e10d5ee957f9b4a2c05620510c3f430216ebb5dcb`、
+`51819bd0ff393f0aacf817fe9ab76ef93e797936a8acc8c01574e89a102f3682`。
+回执记录完整路径、原包构建来源、实际进程 PID、位数与宿主/插件模块来源。
+Portable 子进程只导入该提取包的宿主及隔离 home 中的已安装插件，不使用开发 venv。
+
+每个实际 Portable 的 fresh 阶段完成 PDF ZIP、PNG JSON、DOCX ZIP、真实文件哈希、
+跨 owner 任务和 job 拒绝、后台完成通知、本地停止后远端仍 processing、202/409、
+丢失 POST 确认不重试。浏览器完成健康→提交→后台等待→结果→阅读/下一段，
+会话切换、停止控制归属/清除、失败提示、确认清理及文本 HTML 不执行。
+Cold 独立进程恢复原 owner 与缓存，删除一个任务不影响其他任务；Removed 经 CLI 移除后
+独立启动，服务/客户端图/面板消失且未忘记的产物保留。Cold 和 Removed 的 HTTP 请求均为零。
+每条启用浏览器的完整旅程共 10 次 POST，无远端 DELETE。所有观察器、插件 ZIP 和 Portable ZIP
+在运行前后哈希相同，结束后九个 Web 监听端口均已关闭。
+
+浏览器路径：Browser 插件未提供，使用现有 Playwright / Chromium 108.0.5359.0。
+两种架构均验证 1440×1000 与 390×844；三个阶段共六份 browser.json 通过，
+控制台 error/warning 均为零，截图已人工复查。卸载页面的 API Key 设置提示属于原版引导，
+本轮没有输入凭据或调用模型。日志和 ready.json 含本地连接令牌，不公开或整体提交原始 home。
+
+定向 pytest 选择 `tests/test_offline.py tests/test_web.py tests/test_package_lifecycle.py`，
+覆盖新增入口的路径/输出保护、模拟器协议，以及新清单和客户端产物的实际安装消费者。
+新 UI 回归由两份精确 Portable 包中的实际浏览器操作覆盖，没有重复运行无关宿主全量测试。
+
+原始失败保留于 `%TEMP%/mru-source-1110a/`（cwd 已由宿主创建）、`...1110b/`
+（观察器误用历史 Inbox 属性）、`...1110c/`、`...1110d/`（原版引导分阶段弹出）。
+相应测试工具问题已修复；dev.2 的源码/Portable 通过记录位于 `...mru-source-1110e/`、
+`...mru-x64-1110a/`、`...mru-x86-1110a/`，不拼接为 dev.3 的回执。
+测试工具最初的两项失败与修复记录保留于 `.out/offline-targeted-20261110-214730/` 和
+`.out/offline-targeted-fixed-20261110-214825/`。
+
+这是**指定既有 Portable 上的插件定向兼容检查**，不是宿主完整发行验收。
+尚未完成真实 MinerU 互通/识别质量、真实模型对话自动选工具、Win7 SP1 实机和统一发行门禁。
+复现命令与环境参数见 [无 GPU 验证指南](offline-testing.md)。
+
 ## 客户端完整功能开发版（2026-11-10，0.1.0-dev.2）
 
 选择范围为整个独立插件的测试集合，包含变更提供端、工具消费者、真实套接字、

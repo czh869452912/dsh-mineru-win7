@@ -35,11 +35,11 @@ exports.apply = async function apply(ctx) {
     const [text, setText] = React.useState('');
     const [cursor, setCursor] = React.useState(0);
     const [eof, setEof] = React.useState(false);
-    const [job, setJob] = React.useState('');
+    const [job, setJob] = React.useState(null);
     const alive = React.useRef(true);
     const generation = React.useRef(0);
     React.useEffect(() => () => { alive.current = false; generation.current++; }, []);
-    React.useEffect(() => { generation.current++; setTasks([]); setSelected(''); setText(''); setCursor(0); setJob(''); }, [agent]);
+    React.useEffect(() => { generation.current++; setTasks([]); setSelected(''); setText(''); setCursor(0); setJob(null); }, [agent]);
 
     async function run(operation, args = {}) {
       if (!agent) throw new Error('请先在 DSH 创建一个会话，再选择该会话。');
@@ -56,9 +56,14 @@ exports.apply = async function apply(ctx) {
       try {
         const result = await run(operation, args);
         if (!alive.current || current !== generation.current) return;
-        setNotice(messages[result.code] || result.message || result.code);
+        const stopped = operation === 'job_kill' && result.outcome;
+        setNotice(stopped ? (result.outcome === 'already-finished' ? '后台等待已结束。' : '已请求停止本地等待，远端任务继续运行。') : messages[result.code] || result.message || result.code);
         if (result.task) setSelected(result.task.task_id);
-        if (result.job_id) setJob(result.job_id);
+        if (result.job_id) setJob({id: result.job_id, taskId: result.task.task_id});
+        if (stopped) setJob(null);
+        if (result.code === 'RESULT_SAVED' || result.code === 'RESULT_CACHED') {
+          setJob(current => current?.taskId === result.task.task_id ? null : current);
+        }
         if (operation === 'read' && result.ok) { setText(result.text); setCursor(result.next_offset); setEof(result.eof); }
         const updated = operation === 'list' ? result.tasks || [] : await refresh();
         if (alive.current && current === generation.current) {
@@ -101,7 +106,7 @@ exports.apply = async function apply(ctx) {
           h('option', {value: ''}, tasks.length ? '选择任务' : '暂无任务，请提交或刷新'), tasks.map(item => h('option', {key: item.task_id, value: item.task_id}, `${item.source_name} · ${item.status}`)))),
         h('div', {style: controls}, button('刷新状态', 'status', {task_id: selected}, !selected), button('获取结果', 'result', {task_id: selected}, !selected),
           button('后台等待', 'wait', {task_id: selected, background: true}, !selected),
-          job ? button('停止本地等待', 'job_kill', {job_id: job}) : null),
+          job?.taskId === selected ? button('停止本地等待', 'job_kill', {job_id: job.id}) : null),
         task?.directory ? h('p', {style: {overflowWrap: 'anywhere'}}, '结果目录：', task.directory) : null,
         h('div', {role: 'status', 'aria-live': 'polite', style: {padding: 10, borderRadius: 6, background: '#e6f1ef', marginBottom: 10}}, busy ? '处理中…' : notice),
         h('div', {style: controls}, button('阅读 Markdown', 'read', {task_id: selected, offset: 0}, !selected), button('下一段', 'read', {task_id: selected, offset: cursor}, !selected || !text || eof)),
