@@ -1,0 +1,87 @@
+{
+  "package": "dsh-mineru-win7",
+  "face": "host",
+  "schemas": [],
+  "model": {
+    "services": [],
+    "events": [],
+    "objects": []
+  },
+  "invocations": [
+    {
+      "id": "dsh-mineru-win7#mineruPanel.info",
+      "service": "mineruPanel",
+      "namespace": "mineruPanel",
+      "method": "info",
+      "invocation": {
+        "kind": "direct"
+      },
+      "parameters": [],
+      "result": {
+        "mode": "strict",
+        "typeSymbol": "dsh-mineru-win7#Text",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "id": "dsh-mineru-win7#mineruPanel.run",
+      "service": "mineruPanel",
+      "namespace": "mineruPanel",
+      "method": "run",
+      "invocation": {
+        "kind": "direct"
+      },
+      "parameters": [
+        {
+          "name": "agent",
+          "wire": "agentId",
+          "source": "lookup",
+          "lookup": "agent",
+          "codec": {
+            "mode": "strict",
+            "typeSymbol": "@deepseek-ai/dsh-session/types#SessionId",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "name": "operation",
+          "wire": "operation",
+          "source": "json",
+          "codec": {
+            "mode": "strict",
+            "typeSymbol": "dsh-mineru-win7#Text",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "name": "arguments",
+          "wire": "arguments",
+          "source": "json",
+          "codec": {
+            "mode": "strict",
+            "typeSymbol": "dsh-mineru-win7#Text",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "result": {
+        "mode": "strict",
+        "typeSymbol": "dsh-mineru-win7#Text",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "cancellation": {
+        "parameter": "signal"
+      }
+    }
+  ]
+}

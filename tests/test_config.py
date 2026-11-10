@@ -53,3 +53,9 @@ def test_task_identifiers_cannot_escape_task_resource(task_id):
     config = MinerUConfig.from_mapping({"baseURL": "http://server/mineru/"}, {})
     with pytest.raises(ValueError, match="task_id"):
         config.endpoint("result", task_id)
+
+
+@pytest.mark.parametrize("limit", [True, 0, 1023, 1048577, 2048.5, "65536"])
+def test_response_budget_must_be_bounded_integer(limit):
+    with pytest.raises(ValueError, match="maxResponseBytes"):
+        MinerUConfig.from_mapping({"maxResponseBytes": limit}, {})

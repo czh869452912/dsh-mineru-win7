@@ -1,32 +1,83 @@
 {
   "name": "dsh-mineru-win7",
-  "version": "0.1.0-dev.1",
-  "description": "Python 3.8 plugin scaffold for self-hosted MinerU legacy Tasks and Office Gateway.",
+  "version": "0.1.0-dev.2",
+  "description": "Python 3.8 MinerU legacy Tasks client with Office Gateway, durable artifacts and an optional original-shell Web panel.",
   "license": "MIT",
   "private": true,
   "dsh": {
-    "bundle": {"patch": "cordis.patch.yml"},
+    "bundle": {
+      "patch": "cordis.patch.yml"
+    },
     "python": {
       "apiVersion": 1,
       "sourceRoot": "python",
       "entry": "mineru_win7.plugin:MinerUPlugin",
-      "minPythonVersion": [3, 8, 10],
-      "minHostVersion": [0, 1, 5],
+      "minPythonVersion": [
+        3,
+        8,
+        10
+      ],
+      "minHostVersion": [
+        0,
+        1,
+        5
+      ],
       "dependencies": []
     },
     "release": {
       "formatVersion": 1,
       "files": [
-        "package.json", "cordis.patch.yml", "README.md", "LICENSE",
-        "docs/architecture.md", "docs/ROADMAP.md",
+        "package.json",
+        "cordis.patch.yml",
+        "README.md",
+        "LICENSE",
+        "docs/architecture.md",
+        "docs/ROADMAP.md",
         "docs/research/2026-11-10-mineru-self-hosted-plugin-assessment.md",
-        "python/mineru_win7/__init__.py", "python/mineru_win7/config.py",
-        "python/mineru_win7/errors.py", "python/mineru_win7/plugin.py",
-        "python/mineru_win7/service.py", "python/mineru_win7/tools.py",
+        "python/mineru_win7/__init__.py",
+        "python/mineru_win7/config.py",
+        "python/mineru_win7/errors.py",
+        "python/mineru_win7/plugin.py",
+        "python/mineru_win7/http.py",
+        "python/mineru_win7/transport.py",
+        "python/mineru_win7/files.py",
+        "python/mineru_win7/storage.py",
+        "python/mineru_win7/artifacts.py",
+        "python/mineru_win7/service.py",
+        "python/mineru_win7/tools.py",
         "python/mineru_win7/providers/__init__.py",
         "python/mineru_win7/providers/base.py",
-        "python/mineru_win7/providers/legacy_tasks.py"
+        "python/mineru_win7/providers/legacy_tasks.py",
+        "client/client.js",
+        "client/client.js.map",
+        "remote/contract.json",
+        "remote/typert.py",
+        "src/client.js",
+        "python/mineru_win7/web.py",
+        "docs/verification.md",
+        "scripts/verify_live.py"
       ]
+    },
+    "client": {
+      "platform": "web",
+      "inject": [],
+      "external": [
+        "react"
+      ]
+    },
+    "webArtifacts": {
+      "formatVersion": 1,
+      "targetUpstream": "a4c74a91e06b00fe0b0937bde982170c526cc842",
+      "files": {
+        "client/client.js": "902330ad2b92e8c8533e337720fb0cc74964dab0f48ad1102a44fd4e2d46f7ee",
+        "client/client.js.map": "5f6ea9d10c2a6449ce4c8f8f915a495ab66ba3d5c9a6987ebe69385496f99313",
+        "remote/contract.json": "8d5ff0ca89663563e699abe27d9dbc31f92e9c6bdb8aeabaf35f286d5ea18af0",
+        "remote/typert.py": "89263d58ed63e0a11cf0cfa91ae45eb91507b83de4cc17d361e147d5f5ff4b35"
+      }
     }
+  },
+  "exports": {
+    "./client": "./client/client.js",
+    "./typert": "./remote/typert.py"
   }
 }

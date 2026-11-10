@@ -1,0 +1,5 @@
+# Preserve the exact bytes recorded in dsh.webArtifacts across Windows checkouts.
+client/client.js -text
+client/client.js.map -text
+remote/contract.json -text
+remote/typert.py -text

@@ -19,8 +19,15 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.mark.asyncio
-async def test_zip_install_canonical_boot_all_tools_unload_and_remove(tmp_path, monkeypatch):
+@pytest.mark.parametrize("configured", [False, True])
+async def test_zip_install_canonical_boot_all_tools_unload_and_remove(tmp_path, monkeypatch, http_server, configured):
     monkeypatch.delenv("MINERU_BASE_URL", raising=False)
+    if configured:
+        start, _ = http_server
+        body = b'{"gateway":"ok","libreoffice":true,"mineru":true}'
+        base = await start(b'HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: ' +
+                           str(len(body)).encode("ascii") + b'\r\n\r\n' + body)
+        monkeypatch.setenv("MINERU_BASE_URL", base)
     home = tmp_path / "home"
     monkeypatch.setenv("DSH_HOME", str(home))
     profile = home / "profiles" / "mineru-scaffold-test"
@@ -51,8 +58,12 @@ async def test_zip_install_canonical_boot_all_tools_unload_and_remove(tmp_path, 
             outcome = await ctx.get("tools").execute(ToolExecutionInput(
                 "scaffold-" + operation, "mineru_" + operation, arguments, signal=asyncio.Event()))
             assert not outcome.is_error, outcome.error
-            assert outcome.value["ok"] is False
-            assert outcome.value["code"] == "NOT_CONFIGURED"
+            if configured and operation == "health":
+                assert outcome.value["ok"] is True
+                assert outcome.value["healthFormat"] == "office-gateway"
+            else:
+                assert outcome.value["ok"] is False
+                assert outcome.value["code"] == ("NOT_CONFIGURED" if operation == "health" else "OWNER_REQUIRED")
         entry = next(entry for entry in ctx.loader.entries if entry.options.get("id") == "mineru-win7")
         await entry.fiber.dispose()
         await entry.fiber.await_settled()
@@ -70,16 +81,14 @@ async def test_zip_install_canonical_boot_all_tools_unload_and_remove(tmp_path, 
 
 
 @pytest.mark.asyncio
-async def test_configured_provider_explicitly_refuses_network_and_file_io(monkeypatch):
+async def test_unloaded_provider_refuses_all_network_operations():
     from mineru_win7.config import MinerUConfig
-    from mineru_win7.errors import PendingImplementation, ServiceClosed
+    from mineru_win7.errors import ServiceClosed
     from mineru_win7.providers.legacy_tasks import LegacyTasksProvider
 
     provider = LegacyTasksProvider(MinerUConfig.from_mapping({"baseURL": "http://unused.invalid/mineru/"}, {}))
-    for method, args in ((provider.health, ()), (provider.submit, ("nonexistent.pdf",)),
-                         (provider.status, ("one",)), (provider.result, ("one",))):
-        with pytest.raises(PendingImplementation):
-            await method(*args)
     provider.close()
-    with pytest.raises(ServiceClosed):
-        await provider.health()
+    for method, args in ((provider.health, ()), (provider.submit, (None, {})),
+                         (provider.status, ("one",)), (provider.result, ("one",))):
+        with pytest.raises(ServiceClosed):
+            await method(*args)

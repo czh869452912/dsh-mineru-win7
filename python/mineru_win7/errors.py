@@ -1,4 +1,4 @@
-"""Explicit scaffold failures; never report a successful parse."""
+"""Structured client failures exposed through the host tool contract."""
 
 
 class MinerUError(RuntimeError):
@@ -7,10 +7,6 @@ class MinerUError(RuntimeError):
 
 class NotConfigured(MinerUError):
     code = "NOT_CONFIGURED"
-
-
-class PendingImplementation(MinerUError):
-    code = "NOT_IMPLEMENTED"
 
 
 class ServiceClosed(MinerUError):

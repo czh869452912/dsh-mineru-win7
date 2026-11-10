@@ -1,3 +1,3 @@
-"""Win7-compatible self-hosted MinerU plugin scaffold."""
+"""Win7-compatible self-hosted MinerU client plugin."""
 
-__version__ = "0.1.0-dev.1"
+__version__ = "0.1.0-dev.2"
