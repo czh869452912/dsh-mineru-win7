@@ -3,7 +3,7 @@
 Windows 7 / Python 3.8.10 DSH 的独立 MinerU 客户端插件，连接自部署的
 legacy `/tasks` protocol v2 与 Doc2markdonw Office Gateway。运行时无第三方依赖。
 
-当前开发版 `0.1.0-dev.3` 已实现上传、任务状态、JSON/ZIP 下载、安全落盘、
+当前候选版 `0.1.0-rc.1` 已实现上传、任务状态、JSON/ZIP 下载、安全落盘、
 分段阅读、持久化缓存、会话隔离、宿主 jobs 后台等待和原版 Web 外壳中的可选面板。
 本机没有 MinerU GPU 服务；已验证本地协议与宿主集成，尚未完成真实服务、
 Win7 实机和完整发行验收。指定既有 x86/x64 Portable 中的插件安装、冷启动与卸载
@@ -134,3 +134,5 @@ ZIP 拒绝路径穿越、Windows 设备名/ADS、链接、重复大小写路径�
 
 详见 [实现清单](docs/ROADMAP.md)、[架构](docs/architecture.md)、
 [自部署适配评估](docs/research/2026-11-10-mineru-self-hosted-plugin-assessment.md)。
+
+发布资格、精确 ZIP 绑定和外部验收步骤见 [发布门槛](docs/release.md)。

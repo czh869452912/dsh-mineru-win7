@@ -49,6 +49,7 @@ class MinerUService:
             os.environ.get("DSH_HOME", os.path.expanduser("~/.dsh")), "data", "mineru-win7")
         self.store = TaskStore(root, self.config.base_url + "\0" + self.config.credential_ref, self.config)
         self.closed, self.active = False, set()
+        self.submitting = set()
         self._mutations = asyncio.Lock()
 
     def owner(self, execution):
@@ -133,6 +134,7 @@ class MinerUService:
                               updated_at=now, source_name=snapshot.name, source_sha256=snapshot.sha256,
                               source_size=snapshot.size)
                 self.store.put(record)
+                self.submitting.add(record["task_id"])
             try:
                 remote = await self.provider.submit(snapshot, fields, execution.signal)
                 self.config.endpoint("status", remote["task_id"])
@@ -147,6 +149,8 @@ class MinerUService:
                 if isinstance(error, MinerUError):
                     error.task_id = record["task_id"]
                 raise
+            finally:
+                self.submitting.discard(record["task_id"])
             return success("TASK_SUBMITTED", task=self.public(record))
         finally:
             snapshot.close()
@@ -260,6 +264,8 @@ class MinerUService:
     async def _forget(self, args, execution, owner):
         async with self._mutations:
             record = self.store.get(args["task_id"], owner)
+            if record["task_id"] in self.submitting:
+                raise fail("TASK_BUSY", "Submission is still in flight; stop or finish it before forgetting this task.")
             self.store.forget(record)
         return success("LOCAL_TASK_FORGOTTEN")
 

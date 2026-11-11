@@ -6,6 +6,8 @@ import argparse
 import asyncio
 import json
 import os
+import hashlib
+import re
 from pathlib import Path
 import struct
 import sys
@@ -84,7 +86,9 @@ async def verify(args, output, files):
             return {"value": token} if token else None
     ctx.set_service("credentials", Credentials())
     receipt = dict(kind="provider/client-probe", python=sys.version, base_url=args.base_url, server_identity=args.server_identity,
-                   limitation="Operator-supplied server identity; not an independently verified image digest.", steps=[])
+                   limitation="Operator-supplied server identity; not an independently verified image digest.", steps=[], quality_checks=[])
+    if getattr(args, "plugin_archive", ""):
+        receipt["plugin_sha256"] = hashlib.sha256(Path(args.plugin_archive).read_bytes()).hexdigest()
     try:
         await ctx.plugin(MinerUPlugin, config=dict(baseURL=args.base_url, caFile=args.ca_file,
             credentialRef="MINERU_PROBE_TOKEN" if args.token_env else "", storageDirectory=str(output / "data")))
@@ -98,12 +102,19 @@ async def verify(args, output, files):
                 raise RuntimeError("Probe failed: " + operation + "; see receipt.json")
             return value
         await call("health", {})
+        expected = {".pdf": "MinerU public integration probe", ".png": "TEST", ".docx": "MinerU public Office Gateway probe"}
         for source in files:
-            submitted = await call("submit", dict(file_path=str(source), format="zip"))
-            task = submitted["task"]["task_id"]
-            await call("wait", dict(task_id=task, timeout_seconds=1800))
-            await call("files", dict(task_id=task))
-            await call("read", dict(task_id=task, limit=1000))
+            for format_ in ("zip", "json"):
+                submitted = await call("submit", dict(file_path=str(source), format=format_))
+                task = submitted["task"]["task_id"]
+                await call("wait", dict(task_id=task, timeout_seconds=1800))
+                await call("files", dict(task_id=task))
+                text = await call("read", dict(task_id=task, limit=12000))
+                normalize = lambda value: re.sub(r"\W+", "", value).casefold()
+                passed = normalize(expected[source.suffix]) in normalize(text["text"])
+                receipt["quality_checks"].append(dict(source=source.name, format=format_, passed=passed))
+                if not passed:
+                    raise RuntimeError("Expected probe text missing; see receipt.json")
         receipt["passed"] = True
     finally:
         await ctx.fiber.dispose()
@@ -119,8 +130,16 @@ def main():
     parser.add_argument("--server-identity", default="unverified")
     parser.add_argument("--ca-file", default="")
     parser.add_argument("--token-env", default="", help="Name of an environment variable containing a test token")
+    parser.add_argument("--plugin-archive", default="", help="ZIP whose Python source must match this checkout; binds the receipt")
     parser.add_argument("--host-root", default=os.environ.get("DSH_HOST_ROOT", str(Path(__file__).resolve().parents[3])))
     args = parser.parse_args()
+    if args.plugin_archive:
+        with zipfile.ZipFile(args.plugin_archive) as archive:
+            project = Path(__file__).resolve().parents[1]
+            for name in archive.namelist():
+                if name.startswith("python/") and name.endswith(".py"):
+                    if archive.read(name) != (project / name).read_bytes():
+                        parser.error("Plugin ZIP source differs from this checkout: " + name)
     if not args.generate_only and not args.base_url:
         parser.error("--base-url is required unless --generate-only is used")
     output = Path(args.output).resolve()

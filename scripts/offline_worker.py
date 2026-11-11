@@ -4,6 +4,7 @@ import asyncio
 import hashlib
 import json
 import os
+import platform
 from pathlib import Path
 import shutil
 import struct
@@ -30,6 +31,7 @@ async def main(args):
     import dsh
     assert Path(dsh.__file__).resolve().parent.parent == root, "Host import escaped selected runtime"
     receipt = dict(phase=args.phase, checks=[], python=sys.version, executable=sys.executable,
+                   windows_version=platform.version() if sys.platform == "win32" else "", platform=sys.platform,
                    bitness=struct.calcsize("P") * 8, host_module=dsh.__file__, pid=os.getpid(), passed=False)
     runtime = None
     state_path = home.parent / "state.json"

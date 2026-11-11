@@ -1,6 +1,6 @@
 {
   "name": "dsh-mineru-win7",
-  "version": "0.1.0-dev.3",
+  "version": "0.1.0-rc.1",
   "description": "Python 3.8 MinerU legacy Tasks client with Office Gateway, durable artifacts and an optional original-shell Web panel.",
   "license": "MIT",
   "private": true,
@@ -60,7 +60,11 @@
         "scripts/offline_fixture.py",
         "scripts/offline_worker.py",
         "scripts/offline_browser.cjs",
-        "scripts/verify_offline.py"
+        "scripts/verify_offline.py",
+        "CHANGELOG.md",
+        "docs/release.md",
+        "scripts/check_release.py",
+        "scripts/verify_regression.py"
       ]
     },
     "client": {

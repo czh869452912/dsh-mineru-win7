@@ -155,6 +155,27 @@ async def test_snapshot_change_rejected_before_post(plugin_context, task_server,
     assert task_server["requests"] == []
 
 
+async def test_forget_cannot_delete_an_inflight_submission(plugin_context, task_server, tmp_path):
+    ctx, a, b, _ = await plugin_context()
+    source = tmp_path / "pending.pdf"
+    source.write_bytes(b"%PDF")
+    task_server["stall_submit"] = True
+    pending = asyncio.create_task(call(ctx, a, "submit", file_path=str(source)))
+    try:
+        deadline = asyncio.get_running_loop().time() + 3
+        while not task_server["requests"]:
+            assert asyncio.get_running_loop().time() < deadline
+            await asyncio.sleep(0.01)
+        identifier = (await call(ctx, a, "list"))["tasks"][0]["task_id"]
+        assert (await call(ctx, b, "forget", task_id=identifier))["code"] == "TASK_NOT_FOUND"
+        assert (await call(ctx, a, "forget", task_id=identifier))["code"] == "TASK_BUSY"
+    finally:
+        pending.cancel()
+        await asyncio.gather(pending, return_exceptions=True)
+    assert not ctx.get("mineruWin7").submitting
+    assert (await call(ctx, a, "forget", task_id=identifier))["ok"]
+
+
 async def test_agent_scoped_filesystem_denial_precedes_root_access(plugin_context, task_server):
     from dsh.fs.fs_local import FsError
     ctx, a, _, _ = await plugin_context()
